@@ -1,0 +1,11 @@
+- accelerometer
+  - registers that need changing
+    - CTRL_REG3 (23h)
+      - IEA - set interrupt polarity to active high
+      - IEL - interrupt latching (? what is this ?)
+    - CTRL_REG4 (20h)
+      - ODR - set output data rate (? to what ?)
+      - BDU - block data update (? if reading not fast enough ?)
+    - CTRL_REG6 (25h)
+      - FIFO_EN - FIFO buffer enable (? do I need to ?)
+    

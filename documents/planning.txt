@@ -1,0 +1,80 @@
+Business Card
+
+-- dimensions
+	-- 3.5 x 2 (in) or 89 x 51 (mm)
+	-- 1.6 mm thick (stackup of a 1.00mm board and a 0.6 mm board)
+
+-- 10 leds tall (white)
+
+-- uC
+	-- Atmega328p
+	-- 1.8V - 5.5V operating range
+-- 3 axis accelerometer
+	-- LIS3DSH
+	-- 1.71V - 3.6V
+	-- SPI interface (1.6k samples/second)
+-- LEDs
+	-- white, Rohm Semi SML-P1
+	-- consider switch to 0805 instead of 0402's
+		-- might be easier to hand solder, but this thing is going to be reflow'd anyway
+		-- possibly only consider switch if 0805s are brighter
+-- ambient light sensor
+	-- LOR-303ALS-01
+	-- 2.4V - 3.6V
+-- on/off switch
+	-- JS Sub-Minature (JS102000SAQN)
+-- caps/resistors
+	-- 0805 form factor
+-- batteries
+	-- 2 CR2016 in parallel
+	-- according to energizer, 90mAh down to 2.0V
+		-- ~180mAh in parallell, should be enough for
+		-- two hours or so of constant runtime
+
+-- layout
+	-- first iteration is single 1.6mm board
+	-- backside is all personal information
+	-- other side is components
+
+-- need programming pads for ATMega programmer
+
+
+-- rev0 notes
+	-- battery holder has no silkscreen, I won't be using it in the final design so I won't waste my time on that
+
+-- power disspiation
+	-- per component
+		-- voltage drop resistors - 10 * (5mA * 5mA * 82ohm) = 20.5mW
+		-- LEDs - 10 * (5mA * 2.9V) = 145mW
+		-- uC - ~3mA * 3.3V = 9.9mW (possibly more or less depending on usage of periperhals)
+		-- accelerometer - 225uA * 3.3V = 0.742mW
+	-- total power consumption of ~180mW
+	-- CR2016s are good for ~112mWh/g @ 1.9g = ~212mWh
+	-- using 2 CR2016s means about 420mWh
+		-- 420mWh / 180mW = ~ 2.3 hours of use @ 100% efficiency
+		-- estimate 1.5 hours of shaking (~75% efficiency), if LEDs are constant on
+	-- unfortunately, 180mW @ 3.3V is something like 50mA of draw, with an IR of 15ohms,
+	   this is something like 0.45V of drop due to the internal resistance of the cells,
+	   so we're counting on the boost regulator to keep up
+
+
+-- order of business
+	-- new inductor footprints / change out inductor
+	-- accelerometer connections
+	-- switch for programming mode (to I/O pin)
+
+-- stuff done
+	-- light sensor implementation
+	-- battery gauge ADC connections
+	-- power calculations
+	-- uC power/ADC power
+	-- programming pad layout (pin headers for rev0)
+	-- need to look at ARVISPII pinout
+	-- reset connections
+
+-- other ideas for interface
+	-- thermometer mode (accelerometer has thermometer)
+		-- how to put it into this mode? shake up and down? no clue?
+		-- possibly add pushbuttons or captouch buttons in rev1
+	-- modes could be set using light programming
+		-- bicycle or circular mode or wave mode (good idea?)
