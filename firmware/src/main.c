@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <xc.h>
+#include <limits.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Project Level Includes
@@ -15,6 +16,7 @@ void setupLEDs();
 void setupSPI();
 void setupAccelerometer();
 void setupUART();
+
 void SPIRead(unsigned char addr, int length, unsigned char *out);
 void SPIWrite(unsigned char addr, int length, unsigned char *in);
 void UARTPutC(unsigned char data);
@@ -22,6 +24,89 @@ void UARTPutStr(unsigned const char *str); //null terminated
 char*intToStr(int num);
 
 signed int getYAcceleration();
+
+static unsigned long periodCount = 0;
+static unsigned int periodCountOverflow = 0;
+
+static unsigned int columnTimerPeriod;
+static unsigned int columnTimerCount = 0;
+
+static unsigned int posPeak = 1;
+#define THRESHOLD 19000
+
+static unsigned int currentColumn = 0;
+static unsigned int columnCount = 69;
+static unsigned int image[69] = {
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+	0b0000000000,
+	0b0000000000,
+	0b0000000000,
+	0b0001111111,
+	0b0000000010,
+	0b0000001100,
+	0b0000000010,
+	0b0001111111,
+	0b0000000000,
+	0b0000100000,
+	0b0001010100,
+	0b0001010100,
+	0b0001010100,
+	0b0001111000,
+	0b0000000000,
+	0b0000000100,
+	0b0000111110,
+	0b0001000100,
+	0b0001000000,
+	0b0000100000,
+	0b0000000000,
+	0b0000000100,
+	0b0000111110,
+	0b0001000100,
+	0b0001000000,
+	0b0000100000,
+	0b0000000000,
+	0b0000000000,
+	0b0000000000,
+	0b0000000000,
+	0b0000000000,
+	0b0000000000,
+	0b0000000000,
+	0b0001111111,
+	0b0001001001,
+	0b0001001001,
+	0b0001001001,
+	0b0001000001,
+	0b0000000000,
+	0b0000110000,
+	0b0101001000,
+	0b0101001000,
+	0b0101001000,
+	0b0011111000,
+	0b0000000000,
+	0b0000100000,
+	0b0001010100,
+	0b0001010100,
+	0b0001010100,
+	0b0001111000,
+	0b0000000000,
+	0b0001111100,
+	0b0000001000,
+	0b0000000100,
+	0b0000000100,
+	0b0001111000,
+	0b0000000000,
+	0b0000000000,
+	0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+};
 
 int main(int argc, char** argv) {
     
@@ -31,21 +116,30 @@ int main(int argc, char** argv) {
     INTCONbits.GIE = 1;     //enable global interrupts
     INTCONbits.PEIE = 1;    //enable peripheral interrupts
     
-    //setup a timer
+    //setup timer 0, which times the length of one shake
     T0CONbits.T0CS = 0;     //timer 0 is driven by Fosc/4
     T0CONbits.PSA = 0;      //enable timer 0 clock prescaler
-    
-    TMR0L = 255;            //timer counts to 255 ~ 4ms period
+
     T0CONbits.TMR0ON = 1;   //turn timer 0 on
-    T0CONbits.T0PS = 0b111; //1:256 prescale value for timer 0;
+    T0CONbits.T0PS = 0b010; //1:8 prescale value for timer 0;
     
+    //INFO : timer 0 will overflow at 7.813KHz, meaning that one overflow of periodCount is equal to
+    //       128us
     INTCONbits.TMR0IE = 1;  //enable timer 0 overflow interrupts    
-       
-    int peakFind = 1;
+    
+    //setup timer 1, which times out each column of the display
+    T1CONbits.TMR1ON = 1;   //turn on timer 1
+    TMR1H = 0xF0;
+    TMR1L = 0x00;
+    
+    //INFO : with a prescaler of 1:1, and Fosc/4 = 16MHz, timer 1 will overflow at 62.5kHz, and
+    //       have a overflow period of 16us
+    
+    
     signed int y;
     signed int previousY = getYAcceleration();
-    
-    signed int threshold = 19000;
+    float shakePeriod;
+    float columnPeriod;
     
     while(1) {
         
@@ -55,18 +149,23 @@ int main(int argc, char** argv) {
         //need to do a peak find, alternating between "peaks" and "troughs"
         //alternating between searching for these get us the left and right
         //edges of the shake
-        if(peakFind && y < previousY || !peakFind && y > previousY) {
-            if(peakFind && (y > threshold) || !peakFind && y < -threshold) {
-                peakFind = !peakFind;
-                //reset timer 0
-                T0CONbits.TMR0ON = 0;   //turn timer 0 off
-                T0CONbits.TMR0ON = 1;   //turn timer 0 on
-                T0CONbits.T0PS = 0b111; //1:256 prescale value for timer 0;
-                if(peakFind) {
-                    setLEDOutput(0b1111100000);
-                }else {
-                    setLEDOutput(0b0000011111);
-                }
+        if(posPeak && y < previousY || !posPeak && y > previousY) {
+            if(posPeak && (y > THRESHOLD) || !posPeak && y < -THRESHOLD) {
+                //a peak was found, now we need to search for the opposite peak
+                posPeak = !posPeak;
+                
+                //now we need to setup timer 1 to generate `rowCount` pulses during one shake
+                shakePeriod = periodCount * 128.0e-6;
+                columnPeriod = shakePeriod/((float)columnCount);
+                columnTimerPeriod = (int)(columnPeriod/(256.0e-6));
+                
+                //enable TMR1 interrupts
+                PIE1bits.TMR1IE = 1;      
+                
+                //start a new period
+                periodCount = 0;
+                columnTimerCount = 0;
+                currentColumn = 0;
             }
         }
         previousY = y;               
@@ -75,8 +174,29 @@ int main(int argc, char** argv) {
 
 void interrupt isr(void) {
     if(INTCONbits.TMR0IF) {
-        setLEDOutput(0b0000000000);
+        //this timer increments a period timer so we can count how long the last shake took
+        periodCount++;
         INTCONbits.TMR0IF = 0;
+    }
+    if(PIR1bits.TMR1IF) {
+        TMR1H = 0xF0;
+        TMR1L = 0x00;
+        if(columnTimerCount >= columnTimerPeriod) {
+            currentColumn++;
+            if(currentColumn > columnCount) {
+                setLEDOutput(0b0000000000);
+            } else {
+                if(posPeak) {
+                    setLEDOutput(image[columnCount - currentColumn - 1]);
+                } else {
+                    setLEDOutput(image[currentColumn]);
+                }
+            }
+            columnTimerCount = 0;
+        } else {
+            columnTimerCount++;
+        }
+        PIR1bits.TMR1IF = 0;
     }
 }
 
