@@ -42,65 +42,65 @@ static unsigned int image[69] = {
     0b0000000000,
     0b0000000000,
     0b0000000000,
-	0b0000000000,
-	0b0000000000,
-	0b0000000000,
-	0b0001111111,
-	0b0000000010,
-	0b0000001100,
-	0b0000000010,
-	0b0001111111,
-	0b0000000000,
-	0b0000100000,
-	0b0001010100,
-	0b0001010100,
-	0b0001010100,
-	0b0001111000,
-	0b0000000000,
-	0b0000000100,
-	0b0000111110,
-	0b0001000100,
-	0b0001000000,
-	0b0000100000,
-	0b0000000000,
-	0b0000000100,
-	0b0000111110,
-	0b0001000100,
-	0b0001000000,
-	0b0000100000,
-	0b0000000000,
-	0b0000000000,
-	0b0000000000,
-	0b0000000000,
-	0b0000000000,
-	0b0000000000,
-	0b0000000000,
-	0b0001111111,
-	0b0001001001,
-	0b0001001001,
-	0b0001001001,
-	0b0001000001,
-	0b0000000000,
-	0b0000110000,
-	0b0101001000,
-	0b0101001000,
-	0b0101001000,
-	0b0011111000,
-	0b0000000000,
-	0b0000100000,
-	0b0001010100,
-	0b0001010100,
-	0b0001010100,
-	0b0001111000,
-	0b0000000000,
-	0b0001111100,
-	0b0000001000,
-	0b0000000100,
-	0b0000000100,
-	0b0001111000,
-	0b0000000000,
-	0b0000000000,
-	0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0001111111,
+    0b0000000010,
+    0b0000001100,
+    0b0000000010,
+    0b0001111111,
+    0b0000000000,
+    0b0000100000,
+    0b0001010100,
+    0b0001010100,
+    0b0001010100,
+    0b0001111000,
+    0b0000000000,
+    0b0000000100,
+    0b0000111110,
+    0b0001000100,
+    0b0001000000,
+    0b0000100000,
+    0b0000000000,
+    0b0000000100,
+    0b0000111110,
+    0b0001000100,
+    0b0001000000,
+    0b0000100000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
+    0b0001111111,
+    0b0001001001,
+    0b0001001001,
+    0b0001001001,
+    0b0001000001,
+    0b0000000000,
+    0b0000110000,
+    0b0101001000,
+    0b0101001000,
+    0b0101001000,
+    0b0011111000,
+    0b0000000000,
+    0b0000100000,
+    0b0001010100,
+    0b0001010100,
+    0b0001010100,
+    0b0001111000,
+    0b0000000000,
+    0b0001111100,
+    0b0000001000,
+    0b0000000100,
+    0b0000000100,
+    0b0001111000,
+    0b0000000000,
+    0b0000000000,
+    0b0000000000,
     0b0000000000,
     0b0000000000,
     0b0000000000,
@@ -109,43 +109,48 @@ static unsigned int image[69] = {
 };
 
 int main(int argc, char** argv) {
-    
+
     setup();
-    
+
     //enable interrupts
     INTCONbits.GIE = 1;     //enable global interrupts
     INTCONbits.PEIE = 1;    //enable peripheral interrupts
-    
+
     //setup timer 0, which times the length of one shake
     T0CONbits.T0CS = 0;     //timer 0 is driven by Fosc/4
     T0CONbits.PSA = 0;      //enable timer 0 clock prescaler
 
     T0CONbits.TMR0ON = 1;   //turn timer 0 on
     T0CONbits.T0PS = 0b010; //1:8 prescale value for timer 0;
-    
+
     //INFO : timer 0 will overflow at 7.813KHz, meaning that one overflow of periodCount is equal to
     //       128us
-    INTCONbits.TMR0IE = 1;  //enable timer 0 overflow interrupts    
-    
+    INTCONbits.TMR0IE = 1;  //enable timer 0 overflow interrupts
+
     //setup timer 1, which times out each column of the display
     T1CONbits.TMR1ON = 1;   //turn on timer 1
-    TMR1H = 0xF0;
+    TMR1H = 0xF0;           //set the count to 15/16ths of the overflow value
     TMR1L = 0x00;
-    
-    //INFO : with a prescaler of 1:1, and Fosc/4 = 16MHz, timer 1 will overflow at 62.5kHz, and
-    //       have a overflow period of 16us
-    
-    
+
+    //INFO : since timer 1 is configured with a prescaler of 1:1, and Fosc/4 = 16MHz, it will
+    //       overflow (16bits) at 244.1Hz, with a period of 4.096ms, to cause the overflow to occur
+    //       faster, the counter register is preloaded with 0xF000 at every overflow, which is
+    //       15/16ths the overflow value of 0xFFFF, so the counter (running at 16Mhz) only has to
+    //       count 0xFFF more to overflow, this will happen at 7.637kHz, or every 130.9us, this is
+    //       chosen so that if there are about 3 shakes in a second, the timer can still keep track
+    //       of line widths of 100 or more
+
+
     signed int y;
     signed int previousY = getYAcceleration();
     float shakePeriod;
     float columnPeriod;
-    
+
     while(1) {
-        
+
         //get the current y acceleration
         y = getYAcceleration();
-        
+
         //need to do a peak find, alternating between "peaks" and "troughs"
         //alternating between searching for these get us the left and right
         //edges of the shake
@@ -153,22 +158,22 @@ int main(int argc, char** argv) {
             if(posPeak && (y > THRESHOLD) || !posPeak && y < -THRESHOLD) {
                 //a peak was found, now we need to search for the opposite peak
                 posPeak = !posPeak;
-                
+
                 //now we need to setup timer 1 to generate `rowCount` pulses during one shake
                 shakePeriod = periodCount * 128.0e-6;
                 columnPeriod = shakePeriod/((float)columnCount);
                 columnTimerPeriod = (int)(columnPeriod/(256.0e-6));
-                
+
                 //enable TMR1 interrupts
-                PIE1bits.TMR1IE = 1;      
-                
+                PIE1bits.TMR1IE = 1;
+
                 //start a new period
                 periodCount = 0;
                 columnTimerCount = 0;
                 currentColumn = 0;
             }
         }
-        previousY = y;               
+        previousY = y;
     }
 }
 
@@ -216,7 +221,7 @@ void setup() {
 // Configures the internal oscillator to output 64MHz
 void setupClock() {
     OSCCONbits.IRCF = 0b111;    //make internal oscillator run at 16MHz
-    OSCTUNEbits.PLLEN = 1;      //enable the x4 PLL, only possible since FOSC is set to 0b1001 (9) 
+    OSCTUNEbits.PLLEN = 1;      //enable the x4 PLL, only possible since FOSC is set to 0b1001 (9)
                                 //and IRCF is configured to 16MHz
 }
 
@@ -236,15 +241,15 @@ void setupLEDs() {
 
 // Configures SPI for communication with the accelerometer
 void setupSPI() {
-    
+
     //configure SPI pins
     TRISCbits.TRISC2 = 0;       //set CS as an output
     TRISCbits.TRISC3 = 0;       //set SCK as an output
     TRISCbits.TRISC5 = 0;       //set SDO as an output
-    
+
     //bring CS high
     LATCbits.LATC2 = 1;
-    
+
     //configure the MSSP module
     SSPSTATbits.SMP = 0;        //sample input data at middle of output data time
     SSPSTATbits.CKE = 0;        //data changes on clock transition idle -> active
@@ -267,7 +272,7 @@ void setLEDOutput(unsigned int flag) {
 }
 
 void setupAccelerometer() {
-    unsigned char data[2] = { 
+    unsigned char data[2] = {
         0b01100111,     //data rate -> 100Hz (ODR = 0b0110)
                         //block update -> continuous (BDU -> 0b1)
                         //axis enable -> X, Y, Z enabled
@@ -281,36 +286,36 @@ void setupAccelerometer() {
 }
 
 void setupUART() {
-    //set the baud rate to 115.2k, using Fosc = 64MHz, the value for SPBRG is 
+    //set the baud rate to 115.2k, using Fosc = 64MHz, the value for SPBRG is
     //taken from the datasheet
     SPBRG = 8;
     SPBRGH = 0;
-    
+
     //configure the TX and RX pins as outputs (the EUSART will reconfigure them
     //automatically
     TRISCbits.TRISC6 = 1;
     TRISCbits.TRISC7 = 1;
-    
+
     //configure the EUSART in async mode
     TXSTAbits.SYNC = 0;
-    
+
     //enable the serial port, and enable transmission
     RCSTAbits.SPEN = 1;
-    TXSTAbits.TXEN = 1;   
+    TXSTAbits.TXEN = 1;
 }
 
 void SPIRead(unsigned char addr, int length, unsigned char *out) {
     //bring CS low to begin the cycle
     LATCbits.LATC2 = 0;
-    
+
     //load and tx the address into the SPI output buffer, with the read flag set
     //[7] is the R/W bit (1 -> read), and [6:0] are the address bits
     SSPBUF = addr | 0b10000000;
     while(!SSPSTATbits.BF);
-    
+
     for(int i = 0; i < length; i++) {
         //write out dummy data to clock the device
-        SSPBUF = 0xFF; 
+        SSPBUF = 0xFF;
         while(!SSPSTATbits.BF);
         out[i] = SSPBUF;
     }
@@ -321,18 +326,18 @@ void SPIRead(unsigned char addr, int length, unsigned char *out) {
 void SPIWrite(unsigned char addr, int length, unsigned char *in) {
     //bring CS low to begin the cycle
     LATCbits.LATC2 = 0;
-    
+
     //load the address into the SPI output buffer, with the write flag set
     //[7] is the write bit (0 -> write), and [6:0] are the address bits
     //chop off the 7th bit of the address if it was set for some reason
     SSPBUF = addr & 0b01111111;
     while(!SSPSTATbits.BF);
-    
+
     for(int i = 0; i < length; i++) {
         SSPBUF = in[i];
         while(!SSPSTATbits.BF);
     }
-    
+
     LATCbits.LATC2 = 1;
 }
 
@@ -354,18 +359,18 @@ char *intToStr(int num) {
     char digits[6];     //a place to store the digits
     int digitIndex = 0; //keep track of where in the digits array we're placing
                         //digits
-    
+
     int offset = 0;
     if(num < 0) {
         out[offset++] = '-';
         num = num * -1;
     }
-    
+
     do {
         digits[digitIndex++] = (num % 10) + '0';
         num /= 10;
     } while(num);
-    
+
     for(int i = 0; i < digitIndex + offset; i++) {
         out[i + offset] = digits[digitIndex - i - 1];
     }
@@ -375,7 +380,7 @@ char *intToStr(int num) {
 
 signed int getYAcceleration() {
     unsigned char yData[2];
-    
+
     //TODO : optimize this to use the automatic address increment feature
     //       of the accelerometer's SPI interface
     SPIRead(0x2B, 1, &yData[0]);    //read the MSB 8 bits of the Y axis
