@@ -1,7 +1,7 @@
 Business Card
 
 -- dimensions
-	-- 3.5 x 2 (in) or 89 x 51 (mm)
+	-- 3.5 x 2 (in) or 89 x 50 (mm)
 	-- 1.6 mm thick (stackup of a 1.00mm board and a 0.6 mm board)
 
 -- 10 leds tall (white)
@@ -41,7 +41,7 @@ Business Card
 
 -- rev0 notes
 	-- battery holder has no silkscreen, I won't be using it in the final design so I won't waste my time on that
-
+	
 -- power disspiation
 	-- per component
 		-- voltage drop resistors - 10 * (5mA * 5mA * 82ohm) = 20.5mW
@@ -59,11 +59,12 @@ Business Card
 
 
 -- order of business
-	-- new inductor footprints / change out inductor
-	-- accelerometer connections
-	-- switch for programming mode (to I/O pin)
 
 -- stuff done
+	-- new inductor footprints / change out inductor
+		-- not needed
+	-- accelerometer connections
+	-- switch for programming mode (to I/O pin)
 	-- light sensor implementation
 	-- battery gauge ADC connections
 	-- power calculations
@@ -72,9 +73,74 @@ Business Card
 	-- need to look at ARVISPII pinout
 	-- reset connections
 
--- other ideas for interface
-	-- thermometer mode (accelerometer has thermometer)
-		-- how to put it into this mode? shake up and down? no clue?
-		-- possibly add pushbuttons or captouch buttons in rev1
-	-- modes could be set using light programming
-		-- bicycle or circular mode or wave mode (good idea?)
+
+
+------------------------------------------------------------------------------------------
+
+- rev1 updates
+	- connect light sensor to +3V3
+	- debug header should be array of small pads
+	- programming header should be array of small pads
+		- where should this be located?
+			- only option seems bottom of card
+		- what should the pad size be? look up common pogo pin dimensions 
+	- should headers be series of small pads?
+		- other idea, would be holes through both boards, such that headers are still solderable
+		  and I can provide some with the card
+		- space them back from the edge of the card so when they are soldered on they don't poke
+		  off the edge of the card -- this keeps the card 'shakeable' even after headers are 
+		  soldered on
+		- consider placing on the bottom, if they can be made to fit
+	- momentary pushbutton switch
+		- pick off digikey
+		- create footprint (+ symbol?)
+		- can connect switch to clkout, and still bring clkout to debug header,
+		  programming can either output clkout to one side of the switch with no 
+		  effect, or the clkout pin can be used as a regular I/O (is it an iterrupt? - no (is that a problem?)
+
+		  sdi
+		  sdo
+		  sck
+		  cs
+		  3v3
+		  prog_en
+		  light_vsense
+		  accel_int1
+		  accel_int2
+		  pic_ext_func
+		  v_sw
+
+
+
+		  pic_tx
+		  pic_rx
+		  accel_int1
+		  accel_int2
+		  light_vsense
+		  prog_en
+		  pic_ext_func
+		  3v3
+		  sdi
+		  sdo
+		  sck
+		  cs
+		  v_sw
+- total current source calculation
+	- leds: (10mA IF) * 10 = 100mA
+	- accelerometer: 225uA (max, 11uA if low sample rate mode)
+	- light sensor: 400uA (max)
+
+- risky idea
+	- remove all slide switches
+	- why?
+		- cleaner design
+		- difficult to find such small slide switches
+	- how?
+		- remove slide switches
+		- uC will go into sleep mode, woken up by interrupts driven either by the pushbutton, or an interrupt from the accelerometer
+		- boost converter will operate in pass-through mode (controlled by EN pin), and the uC has control over boosting
+			- this means that we can experiment with completely eliminating the boost converter and driving the entire board off
+			  the batteries directly (the LED current limiting resistors can be replaced with 0ohm resistors for a Vf of ~3V
+			  which gives a IF of ~5mA per the datasheet
+
+sdo,
