@@ -142,5 +142,24 @@ Business Card
 			- this means that we can experiment with completely eliminating the boost converter and driving the entire board off
 			  the batteries directly (the LED current limiting resistors can be replaced with 0ohm resistors for a Vf of ~3V
 			  which gives a IF of ~5mA per the datasheet
+	- changes made
+		- removed switches
+		- deleted PROG_EN net into uC
+		- moved LIGHT_VSENSE rom RB2 to RB3 (should be fine, both are still ADC pins)
+		- put PIC_EXT_FUNC on RB2, since it's an interrupt pin
+		- connected RA6 to EXT_POWER
+		- als(s) are now powered through EXT_POWER from uC since they draw about 0.5mA a piece (in max illumination) they
+		  are potentially a source of large current draw in sleep
+		- removed PROG_EN output on debug header and changed to EXT_POWER
+		- removed pull-up from PIC_EXT_FUNC button, the internal weak pull-up can be used on RB2
+		- added weak pull-down on V_SW so the boost is disabled when V_SW is potentially floating\
+		- added a second ALS to use as a clock signal
+		- renamed LIGHT_VSENSE to ALS_VSENSE_CLK, second ALS uses ALS_VSENSE_DAT
+		- changed EXT_POWER to BOOST_EN, which both ALS are now powered from (ALS is only powered when boost is enabled)
+			- this keeps power consumption low in sleep (only uC and accelerometer are sipping current, about 100nA and 11uA respectively,
+			  meaning the card should last in sleep mode for about two years)
+		- 
+- other ideas
+	- add a second ALS for a clock signal
 
 sdo,
