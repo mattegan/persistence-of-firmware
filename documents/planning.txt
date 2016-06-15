@@ -158,8 +158,13 @@ Business Card
 		- changed EXT_POWER to BOOST_EN, which both ALS are now powered from (ALS is only powered when boost is enabled)
 			- this keeps power consumption low in sleep (only uC and accelerometer are sipping current, about 100nA and 11uA respectively,
 			  meaning the card should last in sleep mode for about two years)
-		- 
+		- s
+	- to do
+		- order some 0ohm resistors (and potentially some alternative 0402 LEDs) to test the white LEDs resilance
+		- calculate some resistor values to boost to 3.0V and try and run the board boosted to 3.0V
 - other ideas
 	- add a second ALS for a clock signal
+	- digipot for control of boost converter? (could allow for different LED currents since the rest of the board is 1.8V-5V tolerant)
+	
 
 sdo,

@@ -1,0 +1,31 @@
+﻿"magnet_inset"= 0.0625in
+"magnet_diameter" = 0.2in
+"steel_inset_distance" = 1in / 32
+"kapton_thickness"= 0.005in
+"pcb_thickness"= 0.6mm
+"magnet_thickness" = 0.03125in
+"edge_radius" = 1in / 10
+"card_width" = 78mm
+"card_height" = 50mm
+"battery_diameter" = 20mm
+"battery_oversize" = 0.1mm
+"battery_vertical_inset" = 1in / 16
+"battery_horizontal_inset" = 1in / 4
+"battery_spacing" = 1in / 16
+"battery_thickness" = 1.6mm
+"battery_cap_oversize" = 1in / 16
+"battery_cap_thickness" = 0.005in
+"led_strip_height" = 3mm
+"led_strip_width" = 35mm
+"led_strip_inset" = 1in / 16
+"max_component_thickness" = 1mm
+
+"als_component_group_width" = 2.6mm
+"als_component_group_height" = 2.6mm
+"als_data_component_group_edge_inset" = 0.0625in
+"als_clock_component_group_edge_inset" = 1in
+
+"als_sensor_width" = 2.6mm
+"als_sensor_height" = 3mm
+"als_data_sensor_edge_inset" = 0.0625in
+"als_clock_sensor_edge_inset" = 1in
