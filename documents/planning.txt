@@ -168,3 +168,8 @@ Business Card
 	
 
 sdo,
+
+
+- mechanical todo
+	- make sure all fillets are not going to intrude on the parts themselves
+		- especially check the pushbutton side hole

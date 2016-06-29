@@ -1,5 +1,5 @@
-﻿"magnet_inset"= 0.0625in
-"magnet_diameter" = 0.2in
+﻿"magnet_inset"= 2.05mm
+"magnet_diameter" = 3in/16
 "steel_inset_distance" = 1in / 32
 "kapton_thickness"= 0.005in
 "pcb_thickness"= 0.6mm
@@ -9,23 +9,46 @@
 "card_height" = 50mm
 "battery_diameter" = 20mm
 "battery_oversize" = 0.1mm
-"battery_vertical_inset" = 1in / 16
-"battery_horizontal_inset" = 1in / 4
-"battery_spacing" = 1in / 16
+"battery_vertical_inset" = 2.05mm
+"battery_horizontal_inset" = 9.95mm
 "battery_thickness" = 1.6mm
 "battery_cap_oversize" = 1in / 16
 "battery_cap_thickness" = 0.005in
-"led_strip_height" = 3mm
-"led_strip_width" = 35mm
-"led_strip_inset" = 1in / 16
-"max_component_thickness" = 1mm
 
-"als_component_group_width" = 2.6mm
-"als_component_group_height" = 2.6mm
-"als_data_component_group_edge_inset" = 0.0625in
-"als_clock_component_group_edge_inset" = 1in
+"led_slot_height" = 3mm
+"led_slot_width" = 1.5mm
+"led_center_to_center_spacing" = 3.5mm
+"led_strip_inset" = 1.6mm
+
+"led_supporting_component_group_width" = 1.4mm
+"led_supporting_component_group_height" = 3.1mm
+"led_supporting_component_group_vertical_offset" = 2.5mm
+"led_supporting_component_group_max_component_thickness" = 0.65mm
+
+"als_supporting_component_group_width" = 3.4mm
+"als_supporting_component_group_height" = 3.1mm
+"als_supporting_component_group_vertical_offset" = 2.5mm
+"als_supporting_component_group_max_component_thickness" = 0.65mm
 
 "als_sensor_width" = 2.6mm
 "als_sensor_height" = 3mm
-"als_data_sensor_edge_inset" = 0.0625in
-"als_clock_sensor_edge_inset" = 1in
+"als_data_sensor_edge_inset" = 1.6mm
+"als_clock_sensor_edge_inset" = 1.6mm
+
+"pushbutton_width" = 3.1mm
+"pushbutton_height" = 3.3mm
+"pushbutton_inset" = 10mm
+
+"uc_width" = 7mm
+"uc_height" = 7mm
+"uc_thickness" = 1mm
+
+"regulator_component_group_width" = 11mm
+"regulator_component_group_height" = 5.2mm
+"regulator_component_group_vertical_inset" = 9mm
+"regulator_component_group_max_component_thickness" = 1mm
+
+"accelerometer_component_group_width" = 11mm
+"accelerometer_component_group_height" = 5.2mm
+"accelerometer_component_group_vertical_inset" = 9mm
+"accelerometer_component_group_max_component_thickness" = 1mm
